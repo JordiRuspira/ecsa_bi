@@ -60,32 +60,33 @@ st.title('Introduction')
 
 # In[3]:
 st.markdown('This is a first version of a dashboard which will evolve over time and anyone can fork at any given time.')
-st.markdown('It is structured as follows:')
+st.markdown('The end goal of a first version would ideally be structured as follows:')
 st.write('- First, number of offers.')
-st.write('- number of staked offers (become ecsa operations).')
-st.write('- deadlines met for tasks within offers.')
-st.write('- weekly hour limit reached but not breached.')
-st.markdown('If there`s any missing information or misleading one, please do not hesitate to reach out on twitter.')
-
+st.write('- Number of staked offers (become ecsa operations).')
+st.write('- Deadlines met for tasks within offers.')
+st.write('- Weekly hour limit reached but not breached.')
  
 
-tab1, tab2 = st.tabs(["Fake data test","Input data here"])
+tab1, tab2 = st.tabs(["Section 1 - Number of offers","Section 2 "])
 
 # In[7]:
 
 with tab1:
     
     
-    st.subheader("Test1")
+    st.subheader("Number of offers")
     st.write('')
-    st.write('Test1 text.')
+    st.write('At the start of the offer market, each participant was asked to fill a link with a few information: name, interests, skills, projected weekly hours. That data has been collected and uploaded as a csv here.')
     st.write('')
     
     df_initial_data = pd.read_csv('offer_markets_initial_hours.csv')
-    fig = px.pie(df_initial_data, values='Q4_weekly_hours', names='Node Affiliation', title='Q4 Projected weekly hours by node affiliation')
+    fig = px.pie(df_initial_data, values='Q4_weekly_hours', names='Node Affiliation', title='Q4 Projected weekly hours by node affiliation',
+                hover_data='Q4_weekly_hours', labels={'Q4_weekly_hours':'Q4 Weekly hours'})
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
-
+    st.write('Remember that each of us wrote our interests? Well, a cool feature we can look at is a wordcloud of our interests, which is shown below. Unfortunately, adding it on streamlit has not been possible so it is an ad-hoc picture straight from a python code, which it is also accessible through the github of this project.')
+    st.write('')
+    
     st.image("img/wordcloud_ecsa.png")
     
 with tab2:
