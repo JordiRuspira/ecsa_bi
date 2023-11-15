@@ -1,9 +1,4 @@
-altair
 pandas
 streamlit
-watchdog
-shroomdk
 seaborn
-wordcloud
 plotly
-hmac
