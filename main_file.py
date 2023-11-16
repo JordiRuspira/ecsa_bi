@@ -49,11 +49,35 @@ import matplotlib.dates as md
 import matplotlib.ticker as ticker
 import numpy as np
 import plotly.express as px 
+from shroomdk import ShroomDK
 
 st.cache(suppress_st_warning=True)  
 st.set_page_config(page_title="ECSA BI Dashboard", layout="wide",initial_sidebar_state="collapsed")
 
-# Rest of the script...
+flipside_key = st.secrets["API_KEY"]
+sdk = ShroomDK(flipside_key)
+# Query Flipside using their Python SDK
+def query_flipside(q):
+    sdk = ShroomDK(flipside_key)
+    result_list = []
+    for i in range(1, 11):  # max is a million rows @ 100k per page
+        data = sdk.query(q, page_size=100000, page_number=i)
+        if data.run_stats.record_count == 0:
+            break
+        else:
+            result_list.append(data.records)
+    result_df = pd.DataFrame()
+    for idx, each_list in enumerate(result_list):
+        if idx == 0:
+            result_df = pd.json_normalize(each_list)
+        else:
+            try:
+                result_df = pd.concat([result_df, pd.json_normalize(each_list)])
+            except:
+                continue
+    result_df.drop(columns=["__row_index"], inplace=True)
+    return result_df
+
 
 # In[2]:
 st.title('Introduction')
@@ -94,3 +118,32 @@ with tab2:
     st.subheader('Test2')
     st.write('')
     st.write('Test2 text')
+    
+    sql1 = """
+       select date_trunc('day', block_timestamp) as date,
+    count(distinct tx_hash) as num_mints,
+count(distinct nft_to_address) as unique_minters,
+sum(num_mints) over (order by date) as cumulative_mints,
+sum(unique_minters)  over (order by date) as cumulative_minters from polygon.nft.ez_nft_mints
+where nft_address = '0xb19e16fa7bfa2924a17b77d0379ff6e2899e8397'
+group by 1 '  
+    """
+    
+    st.experimental_memo(ttl=1000000)
+    @st.experimental_memo
+    def compute(a):
+        results=sdk.query(a)
+        return results
+    
+    results1 = compute(sql1)
+    df1 = pd.DataFrame(results1.records)
+    
+    fig1 = px.bar(df1, x="date", y="num_mints", color_discrete_sequence=px.colors.qualitative.Pastel2)
+    fig1.update_layout(
+    title='Daily ECSA NFTs minted',
+    xaxis_tickfont_size=14,
+    yaxis_tickfont_size=14,
+    bargap=0.15, # gap between bars of adjacent location coordinates.
+    bargroupgap=0.1 # gap between bars of the same location coordinate.
+    )
+    st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
